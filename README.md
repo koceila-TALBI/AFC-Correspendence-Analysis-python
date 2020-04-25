@@ -16,3 +16,5 @@ la matrice d’indépendance
 4. Matrice d’écart à l’indépendance
 5. Décomposition en valeurs singulères (SVD)
 6. Coordonnées des modalités dans les plans factoriels
+
+Regarder l'onglet wiki pour les expliquations de code avec la mise en forme 
