@@ -1,0 +1,157 @@
+Matrice des proportions observées
+
+Comme dans chaque étude exploratoire des données il y’a des librairies à
+inclure et un Dataset à lire.
+Remark 1 Seule la librairie Numpy sera utilisée pour les calculs
+nécessaire à l’AFC
+
+import pandas as pd
+import numpy as np
+import itertools
+
+from scipy . stats import chi2_contingency
+
+import seaborn as sns ;
+sns . set ()
+import matplotlib . pyplot as plt
+
+disciplines = [ " Medicine " ," Literature " ," Peace " ,
+" Physics " ," Chemistry " ," Economy " ]
+
+subContinents = [ " South America " ,
+" Western Africa " ," Central America " ," Eastern Africa " ,
+" Northern Africa " ," Southern Africa " ," Northern America " ,
+" Caribbean " ," Eastern Asia " ," Southern Asia " ,
+" South - Eastern Asia " ," Southern Europe " ," Australia and New
+Zealand " ,
+" Western Asia " ," Eastern Europe " ," Northern Europe " ," Western
+Europe " ]
+
+# read data from csv
+nobelDataDf = pd . read_csv ( " Nobel_N2 " )
+
+# turn to numpy array
+nobelData = nobelDataDf . to_numpy ()
+AFC permet d’étuder un lien entre différentes modalités de chaque vari-
+able. Pour cela nous il vaut mieux travailler en terme de proportion.La pre-
+mère étape consiste à calculer la somme des effectifs du tableau de données
+puis diviser la matrice des effectifs par ce grand total.
+
+# total of all nobel prizes
+grandTotal = np . sum ( nobelData )
+
+# we will work with proportions
+correspondenceMatrix = np . divide ( nobelData , grandTotal )
+
+Créer une matrice d’indépendance
+Analyser les relation les relations entre variables et modalités revient à con-
+stater un écart a une situation d’uniformité. Cette situation d’unifromité (cas
+d’indépendance des variables) est exprimée par la matrice d’indépendance
+qui se calcul simplement avec le produit de la somme marginale des lignes
+(vecteur colonne) par la somme marginale de colonnes (vecteur ligne).
+# row and column marginal totals
+# axis =0 veut dire somme en iterant sur l ’ axe 0
+rowTotals = np . sum ( correspondenceMatrix , axis =1)
+columnTotals = np . sum ( correspondenceMatrix , axis =0)
+
+# Independence matrix
+independenceModel = np . outer ( rowTotals , columnTotals )
+
+Calculer le Ch-2 statistique
+Afin de voir si il y’a bien une distribution dependante des modalites
+
+chiSquaredStatistic = grandTotal * np . sum ( np . square (
+correspondenceMatrix - independenceModel ) / independenceModel )
+# print (" Chi -2 statistique calcul manuel ")
+# print ( chiSquaredStatistic )
+
+Matrice d’écart à l’indépendance
+Cette matrice (standardizedResiduals) permet de constater l’écart à une sit-
+uation d’uniformité ou d’indépendance. Nous allons la pondérer en divisant
+par la racine de la matrice d’indépendance
+
+# Residuals by subtracting the expected proportions from the
+observed proportions
+sta ndardi zedRes idual s = np . divide (( correspondenceMatrix -
+independenceModel ) , np . sqrt ( independenceModel ) )
+
+Décomposition en valeurs singulères (SVD)
+La décomposition en valeurs singulères fait la même chose que la diagonali-
+sation mais elle s’applique aux matrices non carées. l’application de SVD à
+4notre matrice d’écart à l’indépendance (standardizedResiduals)retourne les
+éléments suivants :
+• u : matrice des vecteurs propres pour les lignes (rows)
+• vh : matrice des vecteurs propres pour les colonnes (columns)
+• s : matrice des valeurs propres correspondants
+
+# singular value decomposition ( SVD )
+u ,s , vh = np . linalg . svd ( standardizedResiduals , full_matrices =
+False )
+
+# u contains the left singular vectors .
+# vh contains the right singular vectors .
+# s contains the singular values .
+
+Coordonnées des modalités dans les plans factoriels
+
+Vous vous souvenez, tout à l’heure nous avions pondéré la matrice indépendance. 
+Maintenant nous devons dé-pendérer (unweight) nos matrice de
+vecteurs propres lignes et colonnes (u et vh) en les multipliant par la racine
+des sommes marginales. Unefois les vecteurs propres délestés de leurs pondéra-
+tion nous pouvons récupérer les coordonnées. On obtient ainsi des valeurs
+propres ”standardisés”.
+Les coordonnées des modalités dans les plans factoriels se calculent
+en multipliant les vecteurs propres “standardisés” lignes et
+colonnes, resp stdRows, stdCols par les valeurs propres s
+
+# unweight the SVD ’s outputs
+# unweight for rows
+stdRows = np . zeros (( u . shape [0] , u . shape [1]) )
+for i in range ( u . shape [0]) :
+stdRows [ i ] = np . divide ( u [ i ] , np . sqrt ( rowTotals [ i ]) )
+
+# unweight for colomns
+stdCols = np . zeros (( vh . shape [0] , vh . shape [1]) )
+for i in range ( vh . shape [0]) :
+stdCols [ i ] = np . divide ( vh [ i ] , np . sqrt ( columnTotals [ i ]) )
+
+# compute rows and colomns coordinates
+rowCoordinates = np . dot ( stdRows , np . diag ( s ) )
+colCoordinates = np . dot ( stdCols , np . diag ( s ) )
+
+Préparation du graphique
+A présent nous allons tout mettre dans des dataframe Pandas puis nous
+allons déssiner les points dans le graphes ainsi que leurs labels grace à pyplot
+scatter
+
+# turn to dataframe , that woult be easy to plot the result
+dfF irstTw oCompo nents R = pd . DataFrame ( data =[ l [0:2] for l in
+rowCoordinates ] , columns =[ ’ Factorial_axis_1 ’ , ’
+Factorial_axis_2 ’] , index = subContinents )
+dfF irstTw oCompo nents C = pd . DataFrame ( data =[ l [0:2] for l in
+colCoordinates ] , columns =[ ’ Factorial_axis_1 ’ , ’
+Factorial_axis_2 ’] , index = disciplines )
+dfFirstTwoComponents = dfFir stTwo Compon entsR . append (
+dfF irstTw oComp onents C )
+
+# One list with all labels
+points = subContinents + disciplines
+
+# plot the points
+fig , ax_kwargs = plt . subplots ()
+plt . scatter ( dfFi rstTw oC ompo nents R [ ’ Factorial_axis_1 ’] ,
+dfF irstTw oComp onents R [ ’ Factorial_axis_2 ’] , s = 40 , c = ’ red
+’)
+plt . scatter ( dfFi rstTw oC ompo nents C [ ’ Factorial_axis_1 ’] ,
+dfF irstTw oComp onents C [ ’ Factorial_axis_2 ’] , s = 40 , c = ’
+blue ’)
+plt . title ( ’ scatter plot ’)
+ax_kwargs . axvline ( c = ’ grey ’ , lw =1)
+ax_kwargs . axhline ( c = ’ grey ’ , lw =1)
+
+for i , txt in enumerate ( points ) :
+ax_kwargs . annotate ( txt , ( dfFirstTwoComponents [ ’
+Factorial_axis_1 ’ ][ i ] , dfFirstTwoComponents [ ’
+Factorial_axis_2 ’ ][ i ]) , horizontalalignment = ’ center ’ ,
+verticalalignment = ’ center ’ , size =7)
+plt . show ()
