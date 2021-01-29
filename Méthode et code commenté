@@ -1,6 +1,6 @@
 Matrice des proportions observées
 
-Comme dans chaque étude exploratoire des données il y’a des librairies à
+Comme dans chaque étude exploratoire des données il y a des librairies à
 inclure et un Dataset à lire.
 Remark 1 Seule la librairie Numpy sera utilisée pour les calculs
 nécessaire à l’AFC
