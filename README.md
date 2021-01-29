@@ -1,13 +1,11 @@
 # AFC-Correspendence-Analysis-python
 Un exemple d'Analyse Factoriel des Correspondences en python avec de brèves explications 
 
-L’analyse factoielle des corréspondences est une méthode qui permet de ré-
-duire un tableau de deux vairables qualitatives qui possède chacune plusieurs
-modalités en un tableaux plus simple, si simple qu’ils peuvent être traduits
+L’analyse factoielle des corréspondences est une méthode qui permet de réduire un tableau de deux vairables qualitatives qui possèdent chacune plusieurs modalités en un tableaux plus simple, si simple qu’ils peuvent être traduits
 en graphiques.
-Les étapes que nous allons suivre :
+Les étapes suivies :
 
-1. Diviser toutes les cellules par le nombre total afin de travailler sur de
+1. Diviser toutes les cellules de la matrice par le nombre total afin de travailler sur de
 proportions (matrice des proportion observée)
 2. Calculer les sommes marginales, le résultat doit être un vecteur colonne
 et un vecteur ligne
